@@ -3,7 +3,7 @@ from anthropic import Anthropic
 
 st.set_page_config(page_title="Anthropic Chat", page_icon=":robot:") 
 
-anthropic = Anthropic(api_key=st.secrets["ANTHROPIC_KEY"])
+anthropic = Anthropic(api_key=st.secrets["ANTHROPIC_API_KEY"])
 
 if "generated_text" not in st.session_state:
     st.session_state.generated_text = "" 
