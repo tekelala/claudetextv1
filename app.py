@@ -1,37 +1,32 @@
-import os
-from anthropic import Anthropic, AsyncAnthropic
+import streamlit as st
+from anthropic import Anthropic
 
-# Sync client
-client = Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"]) 
+st.set_page_config(page_title="Anthropic Chat", page_icon=":robot:") 
 
-# Async client
-async_client = AsyncAnthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+anthropic = Anthropic(api_key=st.secrets["ANTHROPIC_KEY"])
 
-def generate_prompt(text_file):
-  return f"Role: You are Nancy Duarte part of the Kravata team an expert in crafting slide Decks for startups. Please create a slide deck on: {text_file}"
+if "generated_text" not in st.session_state:
+    st.session_state.generated_text = "" 
 
-prompt = generate_prompt("compliance")
+if "conversation" not in st.session_state:
+    st.session_state.conversation = ""
 
-response = client.completions.create(
-  model="claude-2",
-  prompt=prompt,
-  max_tokens=500,
-  stop_sequences=["That concludes the presentation"],
-)
+st.title("Anthropic Chat")
 
-print(response.completion)
+user_input = st.text_input("You:", value="", key="input")
+if user_input:
+    st.session_state.conversation += f"You: {user_input}\n"
 
-async def generate_async():
-  prompt = generate_prompt("compliance")
-  
-  response = await async_client.completions.create(
-    model="claude-2",
-    prompt=prompt,
-    max_tokens=500, 
-    stop_sequences=["That concludes the presentation"]
-  )
+    response = anthropic.completions.create(
+        model="claude-2",
+        prompt=st.session_state.conversation,
+        max_tokens=100,
+        stop_sequences=["Assistant:"]
+    )
 
-  print(response.completion)
+    st.session_state.generated_text = response.completion
+    st.session_state.conversation += f"Assistant: {st.session_state.generated_text}\n"
 
-# Call async function
-asyncio.run(generate_async())
+if st.session_state.generated_text:
+    for line in st.session_state.conversation.split("\n"):
+        st.text(line)
